@@ -8,7 +8,6 @@ import User from '../models/User';
 // @access  Private
 export const uploadAvatar = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    // Angalia kama faili limewasilishwa kupitia Multer
     if (!req.file) {
       res.status(400).json({
         success: false,
@@ -17,7 +16,7 @@ export const uploadAvatar = async (req: AuthenticatedRequest, res: Response, nex
       return;
     }
 
-    // Pandisha faili kwenda Cloudinary kupitia Buffer
+    // Pandisha faili kwenda Cloudinary kwenye folda ya avatars
     const uploadResult = await uploadBufferToCloudinary(
       req.file.buffer,
       'backend-api/avatars',
@@ -51,8 +50,8 @@ export const uploadAvatar = async (req: AuthenticatedRequest, res: Response, nex
   }
 };
 
-// @desc    Kupakia faili la jumla (General File Upload)
-// @route   POST /api/v1/upload/file
+// @desc    Kupakia faili moja la kawaida (General Single File Upload)
+// @route   POST /api/v1/upload/single
 // @access  Private
 export const uploadGeneralFile = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -90,3 +89,84 @@ export const uploadGeneralFile = async (req: AuthenticatedRequest, res: Response
   }
 };
 
+// @desc    Kupakia mafaili mengi kwa mara moja (Multiple Files Upload)
+// @route   POST /api/v1/upload/multiple
+// @access  Private
+export const uploadMultipleFiles = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    // req.files inabeba array ya mafaili kupitia Multer (upload.array)
+    const files = req.files as Express.Multer.File[];
+
+    if (!files || files.length === 0) {
+      res.status(400).json({
+        success: false,
+        message: 'Tafadhali chagua angalau faili moja au zaidi ya kupakia',
+      });
+      return;
+    }
+
+    // Tumia Promise.all kupandisha mafaili yote kwa wakati mmoja kwa kasi kubwa
+    const uploadPromises = files.map((file) =>
+      uploadBufferToCloudinary(file.buffer, 'backend-api/gallery', 'auto')
+    );
+
+    const uploadResults = await Promise.all(uploadPromises);
+
+    // Kusanya matokeo ya mafaili yaliyopakiwa
+    const formattedResults = uploadResults.map((result) => ({
+      url: result.secure_url,
+      publicId: result.public_id,
+      format: result.format,
+      size: result.bytes,
+    }));
+
+    res.status(200).json({
+      success: true,
+      count: formattedResults.length,
+      message: 'Mafaili yote yamepakiwa kwenye wingu kwa mafanikio!',
+      data: formattedResults,
+    });
+  } catch (error: any) {
+    console.error('Multiple Upload Error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Imeshindwa kupakia mafaili mengi kwa pamoja',
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Kufuta faili kwenye wingu la Cloudinary (Delete Cloud File)
+// @route   DELETE /api/v1/upload/file/:publicId
+// @access  Private (Admin au Moderator pekee)
+export const deleteCloudFile = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { publicId } = req.params;
+
+    if (!publicId) {
+      res.status(400).json({
+        success: false,
+        message: 'Tafadhali toa kitambulisho cha faili (Public ID)',
+      });
+      return;
+    }
+
+    // Kwa kuwa publicId inaweza kuwa na alama za slash (/), tunahakikisha inasomwa vizuri kama ilivyo au encoded
+    const decodedPublicId = decodeURIComponent(publicId);
+
+    const result = await deleteFromCloudinary(decodedPublicId);
+
+    res.status(200).json({
+      success: true,
+      message: 'Faili limefutwa kwenye wingu kwa mafanikio!',
+      data: result,
+    });
+  } catch (error: any) {
+    console.error('Delete Cloud File Error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Imeshindwa kufuta faili kwenye wingu',
+      error: error.message,
+    });
+  }
+};
