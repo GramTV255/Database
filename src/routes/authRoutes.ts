@@ -10,12 +10,13 @@ import {
   resetPassword 
 } from '../controllers/authController';
 import { protect, authorize, apiKeyProtect } from '../middleware/auth';
+import { validateRegister, validateLogin } from '../validators/authValidator'; // Kuleta validators
 
 const router = Router();
 
-// 1. Njia za Wazi (Public Endpoints - Hazihitaji Token)
-router.post('/register', register);
-router.post('/login', login);
+// 1. Njia za Wazi (Public Endpoints - Zimewekewa Validators kabla ya kufika Controller)
+router.post('/register', validateRegister, register);
+router.post('/login', validateLogin, login);
 router.post('/forgotpassword', forgotPassword);
 router.put('/resetpassword/:resettoken', resetPassword);
 
