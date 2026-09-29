@@ -2,7 +2,7 @@ import http from 'http';
 import { Server, Socket } from 'socket.io';
 import app from './app';
 import { config } from './config/env';
-import connectDB from './config/db';
+import { connectDB } from './config/db';
 
 // 1. Kushughulikia makosa yasiyotarajiwa ya kiufundi kwenye Mfumo (Uncaught Exception)
 process.on('uncaughtException', (error: Error) => {
@@ -22,7 +22,7 @@ const io = new Server(server, {
   cors: {
     origin: '*', // Unaweza kuweka domain maalum hapa baadaye kwa usalama zaidi
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true
+    credentials: true,
   },
   pingTimeout: 60000, // Muda wa kusubiri kabla ya kukata muunganisho
 });
@@ -57,7 +57,7 @@ io.on('connection', (socket: Socket) => {
 });
 
 // 6. Washa Seva kwenye Bandari (Port) iliyotajwa
-const PORT = config.port;
+const PORT = config.port || 5000;
 
 const serverInstance = server.listen(PORT, () => {
   console.log(`==================================================`);
@@ -70,7 +70,7 @@ const serverInstance = server.listen(PORT, () => {
 // 7. Kushughulikia makosa ya database au async yasiyokamatwa (Unhandled Rejection)
 process.on('unhandledRejection', (reason: any) => {
   console.error('KOSA LA ASYNC (Unhandled Rejection): Seva inazima...');
-  console.error(reason.name, reason.message);
+  console.error(reason?.name || 'Error', reason?.message || reason);
   
   serverInstance.close(() => {
     process.exit(1);
