@@ -5,7 +5,8 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import authRoutes from './routes/authRoutes';
-import uploadRoutes from './routes/uploadRoutes'; // Kuleta Routes za Upakiaji wa Mafaili
+import uploadRoutes from './routes/uploadRoutes';
+import userRoutes from './routes/userRoutes'; // Usajili wa Routes za Watumiaji (Admin Management)
 
 const app: Application = express();
 
@@ -59,6 +60,7 @@ app.get('/', (req: Request, res: Response) => {
 // 5. Usajili Rasmi wa Njia za API (API Routes Mounting)
 app.use('/api/v1/auth', authRoutes);     // Njia za Usajili, Kuingia, na Wasifu
 app.use('/api/v1/upload', uploadRoutes); // Njia za Kupakia Picha, Mafaili, na Kufuta Wingu
+app.use('/api/v1/users', userRoutes);    // Njia za Usimamizi wa Watumiaji (Admin Management)
 
 // Endpoint ya Kuchunguza Afya ya Seva (Health Check Endpoint)
 app.use('/api/v1/health', (req: Request, res: Response) => {
