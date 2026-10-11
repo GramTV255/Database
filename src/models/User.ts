@@ -1,10 +1,10 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Model, Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { config } from '../config/env';
 
-// 1. Amua muundo wa TypeScript kwa ajili ya Hati ya Mtumiaji na Njia zake (User Interface)
-export interface IUser extends Document {
+// 1. Muundo wa TypeScript kwa ajili ya Hati ya Mtumiaji (User Document Interface)
+export interface IUser {
   name: string;
   email: string;
   password?: string;
@@ -13,14 +13,18 @@ export interface IUser extends Document {
   isVerified: boolean;
   resetPasswordToken?: string;
   resetPasswordExpire?: Date;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+// 2. Mbinu na njia za ziada zinazotumika kwenye Hati (User Document Methods)
+export interface IUserDocument extends IUser, Document {
   matchPassword(enteredPassword: string): Promise<boolean>;
   getSignedJwtToken(): string;
 }
 
-// 2. Unda Schema ya Mongoose kwa ajili ya MongoDB yenye vipengele vya juu
-const UserSchema: Schema<IUser> = new Schema(
+// 3. Unda Schema ya Mongoose kwa ajili ya MongoDB yenye vipengele vya juu
+const UserSchema: Schema<IUserDocument> = new Schema(
   {
     name: {
       type: String,
@@ -65,8 +69,8 @@ const UserSchema: Schema<IUser> = new Schema(
   }
 );
 
-// 3. Mabadiliko ya Kabla ya Kuhifadhi: Kusimba Neno la Siri (Password Hashing via bcryptjs)
-UserSchema.pre<IUser>('save', async function (next) {
+// 4. Mabadiliko ya Kabla ya Kuhifadhi: Kusimba Neno la Siri (Password Hashing via bcryptjs)
+UserSchema.pre<IUserDocument>('save', async function (next) {
   // Kama neno la siri halijabadilishwa, ruka hatua hii
   if (!this.isModified('password')) {
     return next();
@@ -83,7 +87,7 @@ UserSchema.pre<IUser>('save', async function (next) {
   }
 });
 
-// 4. Mbinu ya Kutengeneza JWT Token (Sign JWT and return)
+// 5. Mbinu ya Kutengeneza JWT Token (Sign JWT and return)
 UserSchema.methods.getSignedJwtToken = function (): string {
   return jwt.sign(
     { id: this._id, role: this.role },
@@ -92,10 +96,10 @@ UserSchema.methods.getSignedJwtToken = function (): string {
   );
 };
 
-// 5. Mbinu ya Kulinganisha Neno la Siri wakati wa kuingia (Match user entered password to hashed password in database)
+// 6. Mbinu ya Kulinganisha Neno la Siri wakati wa kuingia (Match user entered password to hashed password in database)
 UserSchema.methods.matchPassword = async function (enteredPassword: string): Promise<boolean> {
   if (!this.password) return false;
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-export default mongoose.model<IUser>('User', UserSchema);
+export default mongoose.model<IUserDocument>('User', UserSchema);
