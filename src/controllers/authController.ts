@@ -1,10 +1,10 @@
 import { Response, NextFunction } from 'express';
 import crypto from 'crypto';
-import User, { IUser } from '../models/User';
+import User, { IUserDocument } from '../models/User';
 import { AuthenticatedRequest } from '../middleware/auth';
 
 // 1. Mbinu ya Kusafirisha Tokeni na Cookie kwa Usalama
-const sendTokenResponse = (user: IUser, statusCode: number, res: Response) => {
+const sendTokenResponse = (user: IUserDocument, statusCode: number, res: Response) => {
   const token = user.getSignedJwtToken();
 
   const options = {
@@ -62,7 +62,7 @@ export const register = async (req: AuthenticatedRequest, res: Response, next: N
       avatar: avatar || '',
     });
 
-    sendTokenResponse(user, 201, res);
+    sendTokenResponse(user as IUserDocument, 201, res);
   } catch (error: any) {
     console.error('Register Controller Error:', error.message);
     res.status(500).json({
