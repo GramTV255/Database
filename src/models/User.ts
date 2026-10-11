@@ -9,7 +9,7 @@ export interface IUser {
   email: string;
   password?: string;
   avatar?: string;
-  role: 'user' | 'admin' | 'moderator';
+  role: string; // Imerekebishwa kutoka union type kwenda string ya kawaida kuzuia mgongano
   isVerified: boolean;
   resetPasswordToken?: string;
   resetPasswordExpire?: Date;
