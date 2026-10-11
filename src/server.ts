@@ -2,7 +2,8 @@ import http from 'http';
 import { Server, Socket } from 'socket.io';
 import app from './app';
 import { config } from './config/env';
-import { connectDB } from './config/db';
+import connectDB from './config/db';
+connectDB();
 
 // 1. Kushughulikia makosa yasiyotarajiwa ya kiufundi kwenye Mfumo (Uncaught Exception)
 process.on('uncaughtException', (error: Error) => {
