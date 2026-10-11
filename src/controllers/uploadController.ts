@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { uploadBufferToCloudinary, deleteFromCloudinary } from '../utils/fileUpload';
-import User from '../models/User';
+import User, { IUserDocument } from '../models/User';
 
 // @desc    Kupakia Picha ya Wasifu (Upload User Avatar)
 // @route   POST /api/v1/upload/avatar
@@ -24,7 +24,8 @@ export const uploadAvatar = async (req: AuthenticatedRequest, res: Response, nex
     );
 
     // Sasisha taarifa za mtumiaji kwenye database na URL mpya ya avatar
-    const userId = req.user?._id;
+    const user = req.user as IUserDocument;
+    const userId = user?._id;
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { avatar: uploadResult.secure_url },
