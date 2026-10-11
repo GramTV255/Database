@@ -1,0 +1,6 @@
+kind: wasmer.io/App.v0
+name: backend-api
+package: .
+env:
+  PORT: "5000"
+  HOST: "0.0.0.0"
