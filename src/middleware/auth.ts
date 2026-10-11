@@ -1,11 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { config } from '../config/env';
-import User, { IUser } from '../models/User';
+import User, { IUserDocument } from '../models/User';
 
 // Kuongeza mali za ziada kwenye Request ya Express
 export interface AuthenticatedRequest extends Request {
-  user?: IUser;
+  user?: IUserDocument;
 }
 
 // 1. Mbinu Kuu ya Kuhakiki Tokeni (Protect Routes - Advanced Authentication)
@@ -58,7 +58,7 @@ export const protect = async (req: AuthenticatedRequest, res: Response, next: Ne
     }
 
     // Weka taarifa za mtumiaji kwenye request (bila neno la siri)
-    req.user = await User.findById(decoded.id).select('-password') as IUser;
+    req.user = (await User.findById(decoded.id).select('-password')) as IUserDocument;
     next();
   } catch (error: any) {
     console.error('Auth Error:', error.message);
@@ -83,7 +83,7 @@ export const optionalProtect = async (req: AuthenticatedRequest, res: Response, 
   if (token) {
     try {
       const decoded: any = jwt.verify(token, config.jwtSecret);
-      req.user = await User.findById(decoded.id).select('-password') as IUser;
+      req.user = (await User.findById(decoded.id).select('-password')) as IUserDocument;
     } catch (error) {
       // Token ikiwa mbaya kwenye optional, tunapuuza tu na kuruhusu aendelee kama mgeni
       req.user = undefined;
